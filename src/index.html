@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YGO 卡片搜索</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="topbar">
+  <div id="logo">🎴 YGO <span>卡片搜索</span></div>
+  <nav id="modeTabs">
+    <button id="tabSearch" class="mtab on">搜索</button>
+    <button id="tabRand" class="mtab">随机组卡</button>
+  </nav>
+  <div id="searchbox">
+    <input id="search" type="text" placeholder="搜索卡名 / 效果描述 / 卡片密码(可用空格分隔多个关键词)…" autocomplete="off" spellcheck="false">
+  </div>
+  <select id="locale" title="切换语言">
+    <option value="zh-CN">简体中文</option>
+    <option value="ja-JP">日本語</option>
+    <option value="en-US">English</option>
+  </select>
+  <button id="toggleFilters" class="ghost" title="筛选">☰ 筛选</button>
+</header>
+
+<div id="layout">
+  <aside id="filters">
+    <div class="fgroup" id="fg-main">
+      <h3>主类型 <span class="hint">(任一)</span></h3>
+      <div class="chips" id="f-main"></div>
+      <div class="chips" id="f-token" style="margin-top:6px"></div>
+    </div>
+    <div class="fgroup">
+      <h3>细分类型 <span class="hint">(全部满足)</span></h3>
+      <div class="chips" id="f-sub"></div>
+    </div>
+    <div class="fgroup">
+      <h3>属性 <span class="hint">(任一)</span></h3>
+      <div class="chips" id="f-attr"></div>
+    </div>
+    <div class="fgroup collapsible">
+      <h3 class="collhead">种族 <span class="hint">(任一)</span><span class="arrow">▾</span></h3>
+      <div class="chips collapsible-body" id="f-race"></div>
+    </div>
+    <div class="fgroup">
+      <h3>数值范围</h3>
+      <div class="ranges">
+        <label>等级/Link</label><div class="rg"><input id="lvMin" type="number" min="0" max="15" placeholder="最小"><span>~</span><input id="lvMax" type="number" min="0" max="15" placeholder="最大"></div>
+        <label>灵摆刻度</label><div class="rg"><input id="scMin" type="number" min="0" max="13" placeholder="最小"><span>~</span><input id="scMax" type="number" min="0" max="13" placeholder="最大"></div>
+        <label>攻击力</label><div class="rg"><input id="atkMin" type="number" placeholder="最小"><span>~</span><input id="atkMax" type="number" placeholder="最大"></div>
+        <label>守备力</label><div class="rg"><input id="defMin" type="number" placeholder="最小"><span>~</span><input id="defMax" type="number" placeholder="最大"></div>
+      </div>
+    </div>
+    <div class="fgroup">
+      <h3>字段 / 系列</h3>
+      <div class="setwrap">
+        <input id="setcode" type="text" placeholder="输入字段名或代码…" autocomplete="off" spellcheck="false">
+        <div id="setcodeDrop" class="drop hidden"></div>
+      </div>
+      <div id="setcodeSel" class="chips"></div>
+    </div>
+    <div class="fgroup collapsible">
+      <h3 class="collhead">效果分类·数据库 <span class="hint">(任一)</span><span class="arrow">▾</span></h3>
+      <div class="chips collapsible-body" id="f-cat"></div>
+    </div>
+    <div class="fgroup">
+      <h3>效果标签·脚本分析 <span class="hint">(全部满足)</span></h3>
+      <div class="chips" id="f-tags"></div>
+    </div>
+    <div class="fgroup collapsible">
+      <h3 class="collhead">效果明细·脚本分析 <span class="arrow">▾</span></h3>
+      <div class="collapsible-body effcol">
+      <div class="chips" id="f-effstrict"></div>
+      <div class="chips" id="f-tg"></div>
+      <div class="chips" id="f-acts"></div>
+      <div class="chips" id="f-fdesc"></div>
+      <div class="chips" id="f-pside"></div>
+      <div class="chips" id="f-ss"></div>
+      </div>
+    </div>
+    <div class="fgroup collapsible" id="fg-g2">
+      <h3 class="collhead">系列条件·第二组 <span class="hint" id="g2hint"></span><span class="arrow">▾</span></h3>
+      <div class="collapsible-body effcol">
+        <input id="g2q" type="text" placeholder="系列中需有卡满足: 关键词…" autocomplete="off" spellcheck="false">
+        <div class="g2lab">主类型(任一)</div>
+        <div class="chips" id="g2-main"></div>
+        <div class="g2lab">细分类型(全部满足)</div>
+        <div class="chips" id="g2-sub"></div>
+        <div class="g2lab">属性(任一)</div>
+        <div class="chips" id="g2-attr"></div>
+        <div class="g2lab">种族(任一)</div>
+        <div class="chips" id="g2-race"></div>
+        <div class="g2lab">效果分类·数据库(任一)</div>
+        <div class="chips" id="g2-cat"></div>
+        <div class="g2lab">等级/Link 攻 守</div>
+        <div class="rg g2rg">
+          <input id="g2lvMin" type="number" placeholder="等级"><span>~</span><input id="g2lvMax" type="number" placeholder="">
+          <input id="g2atkMin" type="number" placeholder="攻"><span>~</span><input id="g2atkMax" type="number" placeholder="">
+          <input id="g2defMin" type="number" placeholder="守"><span>~</span><input id="g2defMax" type="number" placeholder="">
+        </div>
+        <div class="g2lab">效果标签(全部满足)</div>
+        <div class="chips" id="g2-tags"></div>
+        <div class="g2lab">对象判定(任一)</div>
+        <div class="chips" id="g2-tg"></div>
+        <div class="g2lab">动作(任一)</div>
+        <div class="chips" id="g2-acts"></div>
+        <div class="g2lab">卡片限定(任一)</div>
+        <div class="chips" id="g2-fdesc"></div>
+        <div class="g2lab">玩家方位(任一)</div>
+        <div class="chips" id="g2-pside"></div>
+        <button id="g2clear" class="ghost" style="width:100%;margin-top:2px">清空第二组</button>
+      </div>
+    </div>
+    <div class="fgroup">
+      <h3>收录</h3>
+      <div class="radios" id="f-ot"></div>
+    </div>
+    <div class="fgroup">
+      <h3>脚本</h3>
+      <div class="radios" id="f-script"></div>
+      <div class="chips" id="f-dedupe" style="margin-top:6px"></div>
+    </div>
+    <div class="fgroup">
+      <h3>先行卡</h3>
+      <div class="radios" id="f-pre"></div>
+    </div>
+    <div class="fgroup" id="fg-bl">
+      <h3><span id="blTitle">禁限</span> <span class="hint" id="blHint"></span></h3>
+      <div class="radios" id="f-bl"></div>
+    </div>
+    <button id="resetFilters">重置全部筛选</button>
+  </aside>
+
+  <main id="main">
+    <div id="toolbar">
+      <span id="resultCount">加载中…</span>
+      <div id="sortbox">
+        <label>排序</label>
+        <select id="sortKey">
+          <option value="id">卡号</option>
+          <option value="name">名称</option>
+          <option value="atk">攻击力</option>
+          <option value="def">守备力</option>
+          <option value="lv">等级</option>
+        </select>
+        <button id="sortDir" class="ghost" title="切换升/降序">↑</button>
+      </div>
+    </div>
+    <div id="listWrap"><div id="list"></div></div>
+  </main>
+</div>
+
+<div id="randLayout" class="hidden">
+  <aside id="randSide">
+    <div class="fgroup">
+      <h3 id="r-h-set">抽卡设置</h3>
+      <div class="ranges">
+        <label id="r-l-mainn">主卡组数量</label>
+        <div class="rg"><input id="rMainN" type="number" min="0" max="99"></div>
+        <label id="r-l-minmon">怪兽最少(可选)</label>
+        <div class="rg"><input id="rMinMon" type="number" min="0" placeholder="0"></div>
+        <label id="r-l-minsp">魔法最少(可选)</label>
+        <div class="rg"><input id="rMinSp" type="number" min="0" placeholder="0"></div>
+        <label id="r-l-mintr">陷阱最少(可选)</label>
+        <div class="rg"><input id="rMinTr" type="number" min="0" placeholder="0"></div>
+        <label id="r-l-extran">额外卡组数量</label>
+        <div class="rg"><input id="rExtraN" type="number" min="0" max="30"></div>
+      </div>
+      <div class="ranges" style="margin-top:8px"><label id="r-l-cap">每卡上限</label></div>
+      <div class="chips" id="r-cap"></div>
+      <div class="chips" id="r-pre" style="margin-top:6px"></div>
+      <div class="chips" id="r-bl" style="margin-top:6px"></div>
+      <div class="ranges" style="margin-top:8px"><label id="r-l-ot">卡区</label></div>
+      <div class="radios" id="r-ot"></div>
+    </div>
+    <div class="fgroup">
+      <h3 id="r-h-rules">排除规则</h3>
+      <div id="rRuleList"></div>
+      <div class="g2lab" id="r-l-fmain" style="margin-top:8px">类型(任一)</div>
+      <div class="chips" id="r-fmain"></div>
+      <div class="g2lab" id="r-l-fsub" style="margin-top:6px">细分类型(全部满足)</div>
+      <div class="chips" id="r-fsub"></div>
+      <div class="g2lab" id="r-l-fattr" style="margin-top:6px">属性(任一)</div>
+      <div class="chips" id="r-fattr"></div>
+      <div class="collapsible" style="margin-top:6px">
+        <h3 class="collhead g2lab"><span id="r-l-frace">种族(任一)</span><span class="arrow">▾</span></h3>
+        <div class="chips collapsible-body" id="r-frace"></div>
+      </div>
+      <div class="g2lab" id="r-l-fset" style="margin-top:6px">字段</div>
+      <div class="setwrap">
+        <input id="rSetcode" type="text" placeholder="输入字段名或代码…" autocomplete="off" spellcheck="false">
+        <div id="rSetcodeDrop" class="drop hidden"></div>
+      </div>
+      <div id="rSetcodeSel" class="chips"></div>
+      <button id="rAddRule" class="ghost" style="width:100%;margin-top:8px">添加排除规则</button>
+    </div>
+    <div class="fgroup">
+      <h3 id="r-h-excl">排除卡片</h3>
+      <div id="rExclList" class="chips" style="max-height:200px;overflow-y:auto"></div>
+      <button id="rClearExcl" class="ghost" style="width:100%;margin-top:8px">清空全部</button>
+    </div>
+    <div class="fgroup">
+      <h3 id="r-h-pool">卡池文件</h3>
+      <div class="chips">
+        <button id="rExportPool" class="ghost">导出卡池(JSON)</button>
+        <button id="rImportPool" class="ghost">导入卡池(JSON)</button>
+      </div>
+      <input type="file" id="rImportFile" accept=".json,application/json" style="display:none">
+    </div>
+  </aside>
+  <main id="randMain">
+    <div id="randBar">
+      <span id="randStats">…</span>
+      <button id="rDraw" class="drawbtn">🎲 随机抽取</button>
+    </div>
+    <div id="randMsg" class="hidden"></div>
+    <div id="randResult"></div>
+    <div class="fgroup collapsible open" id="randHistoryWrap">
+      <h3 class="collhead"><span id="r-h-hist">抽取历史</span><span class="arrow">▾</span></h3>
+      <div class="collapsible-body histcol">
+        <button id="rClearHist" class="ghost" style="align-self:flex-start">清空历史</button>
+        <div id="randHistory"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="detailWrap" class="hidden">
+  <div id="detailMask"></div>
+  <div id="detail"></div>
+</div>
+
+<div id="status">正在加载数据…</div>
+<script src="app.js"></script>
+</body>
+</html>
